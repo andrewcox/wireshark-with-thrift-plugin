@@ -834,28 +834,16 @@ if test "x$enable_wireshark" = "xyes"; then
 		have_gtk=no
 	else
 		#
-		# Not Qt - either GTK+ 3.x or 2.x.
+		# Not Qt - GTK+ 2.x.
 		#
-		if test "x$with_gtk3" = "xyes"; then
-			AM_PATH_GTK_3_0(3.0.0,
-			[
-				CFLAGS="$CFLAGS $GTK_CFLAGS"
-				CXXFLAGS="$CXXFLAGS $GTK_CFLAGS"
-				have_gtk=yes
-				AC_DEFINE(HAVE_GTK, 1,
-				    [Define to 1 if compiling with GTK])
-			], have_gtk=no)
-
-		else
-			AM_PATH_GTK_2_0(2.12.0,
-			[
-				CFLAGS="$CFLAGS $GTK_CFLAGS"
-				CXXFLAGS="$CXXFLAGS $GTK_CFLAGS"
-				have_gtk=yes
-				AC_DEFINE(HAVE_GTK, 1,
-				    [Define to 1 if compiling with GTK])
-			], have_gtk=no)
-		fi
+		AM_PATH_GTK_2_0(2.12.0,
+		[
+			CFLAGS="$CFLAGS $GTK_CFLAGS"
+			CXXFLAGS="$CXXFLAGS $GTK_CFLAGS"
+			have_gtk=yes
+			AC_DEFINE(HAVE_GTK, 1,
+			    [Define to 1 if compiling with GTK])
+		], have_gtk=no)
 	fi
 else
 	have_qt=no
@@ -2108,6 +2096,7 @@ AC_OUTPUT(
   plugins/unistim/Makefile
   plugins/wimax/Makefile
   plugins/wimaxasncp/Makefile
+  plugins/thrift/Makefile
   tools/Makefile
   tools/lemon/Makefile
   wiretap/Makefile
