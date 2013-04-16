@@ -325,13 +325,13 @@ proto_item* dissect_thrift_map(shared_ptr<WiresharkHeaderProtocol> protocol, pro
   int mapStartOffset;
 
   mapStartOffset = protocol->getReadOffset();
-  proto_item* ti = proto_tree_add_item(parent,
+  proto_item* mapItem = proto_tree_add_item(parent,
   				       hf_thrift_map,
   				       protocol->getWiresharkBuffer(),
   				       mapStartOffset,
   				       -1,
   				       FALSE);
-  proto_tree* subtree = proto_item_add_subtree(ti,
+  proto_tree* mapSubtree = proto_item_add_subtree(mapItem,
   					       ett_thrift_map);
 
   TType keyType;
@@ -340,21 +340,33 @@ proto_item* dissect_thrift_map(shared_ptr<WiresharkHeaderProtocol> protocol, pro
   protocol->readMapBegin(keyType, valType, size);
 
   for (int i = 0; i < size; i++) {
+    int mapEntryStartOffset = protocol->getReadOffset();
+    proto_item* ti = proto_tree_add_item(mapSubtree,
+                                         hf_thrift_map_entry,
+                                         protocol->getWiresharkBuffer(),
+                                         mapEntryStartOffset,
+                                         -1,
+                                         FALSE);
+    proto_tree* subtree = proto_item_add_subtree(ti,
+                                                 ett_thrift_map_entry);
+
     startOffset = protocol->getReadOffset();
-    if (!dissect_thrift_field_content(protocol, subtree, "", keyType, startOffset)) {
+    if (!dissect_thrift_field_content(protocol, subtree, "key: ", keyType, startOffset)) {
       return NULL;
     }
     startOffset = protocol->getReadOffset();
-    if (!dissect_thrift_field_content(protocol, subtree, "", valType, startOffset)) {
+    if (!dissect_thrift_field_content(protocol, subtree, "value: ", valType, startOffset)) {
       return NULL;
     }
+
+    proto_item_set_len(ti, protocol->getReadOffset() - mapEntryStartOffset);
   }
 
   protocol->readMapEnd();
 
-  proto_item_set_len(ti, protocol->getReadOffset() - mapStartOffset);
+  proto_item_set_len(mapItem, protocol->getReadOffset() - mapStartOffset);
 
-  return ti;
+  return mapItem;
 }
 
 proto_item* dissect_thrift_struct(shared_ptr<WiresharkHeaderProtocol> protocol, proto_tree* parent, TMessageType messageType, int16_t* pFieldId)

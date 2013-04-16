@@ -155,12 +155,14 @@ int hf_thrift_struct = -1;
 int hf_thrift_message = -1;
 int hf_thrift_list = -1;
 int hf_thrift_map = -1;
+int hf_thrift_map_entry = -1;
 int hf_thrift_set = -1;
 
 /* Initialize the subtree pointers */
 gint ett_thrift_struct = -1;
 gint ett_thrift_list = -1;
 gint ett_thrift_map = -1;
+gint ett_thrift_map_entry = -1;
 gint ett_thrift_set = -1;
 gint ett_thrift_message = -1;
 
@@ -857,6 +859,19 @@ void proto_register_thrift(void) {
         "Thrift map datatype",
         HFILL
       }
+    },
+    {
+      &hf_thrift_map_entry,
+      {
+        "Entry",
+        "thrift.map.entry",
+        FT_NONE,
+        BASE_NONE,
+        NULL,
+        0,
+        "Thrift map entry datatype",
+        HFILL
+      }
     }
   };
 
@@ -865,6 +880,7 @@ void proto_register_thrift(void) {
     &ett_thrift_struct,
     &ett_thrift_list,
     &ett_thrift_map,
+    &ett_thrift_map_entry,
     &ett_thrift_set,
     &ett_thrift_message
   };

@@ -12,11 +12,13 @@ extern int hf_thrift_struct;
 extern int hf_thrift_message;
 extern int hf_thrift_list;
 extern int hf_thrift_map;
+extern int hf_thrift_map_entry;
 extern int hf_thrift_set;
 
 extern gint ett_thrift_struct;
 extern gint ett_thrift_list;
 extern gint ett_thrift_map;
+extern gint ett_thrift_map_entry;
 extern gint ett_thrift_set;
 extern gint ett_thrift_message;
 
