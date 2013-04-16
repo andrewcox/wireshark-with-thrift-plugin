@@ -282,16 +282,34 @@ bool dissect_thrift_field_content(shared_ptr<WiresharkHeaderProtocol> protocol,
     break;
 
   case apache::thrift::protocol::T_MAP:
-    dissect_thrift_map(protocol, parent, pFieldId);
+    {
+    proto_item* ti = dissect_thrift_map(protocol, parent, pFieldId);
+    proto_item_set_text(ti,
+                        "%s%s",
+                        field_id_to_text(pFieldId),
+                        fieldTypeName[fieldType]);
     break;
+    }
 
   case apache::thrift::protocol::T_LIST:
-    dissect_thrift_list(protocol, parent, pFieldId);
+    {
+    proto_item* ti = dissect_thrift_list(protocol, parent, pFieldId);
+    proto_item_set_text(ti,
+                        "%s%s",
+                        field_id_to_text(pFieldId),
+                        fieldTypeName[fieldType]);
     break;
+    }
 
   case apache::thrift::protocol::T_SET:
-    dissect_thrift_set(protocol, parent, pFieldId);
+    {
+    proto_item* ti = dissect_thrift_set(protocol, parent, pFieldId);
+    proto_item_set_text(ti,
+                        "%s%s",
+                        field_id_to_text(pFieldId),
+                        fieldTypeName[fieldType]);
     break;
+    }
 
   case apache::thrift::protocol::T_I64:
     {
@@ -384,6 +402,8 @@ proto_item* dissect_thrift_list(shared_ptr<WiresharkHeaderProtocol> protocol, pr
   protocol->readListEnd();
 
   proto_item_set_len(ti, protocol->getReadOffset() - listStartOffset);
+
+  return ti;
 }
 
 proto_item* dissect_thrift_set(shared_ptr<WiresharkHeaderProtocol> protocol, proto_tree* parent, int16_t *pFieldId)
@@ -420,6 +440,8 @@ proto_item* dissect_thrift_set(shared_ptr<WiresharkHeaderProtocol> protocol, pro
   protocol->readSetEnd();
 
   proto_item_set_len(ti, protocol->getReadOffset() - setStartOffset);
+
+  return ti;
 }
 
 proto_item* dissect_thrift_map(shared_ptr<WiresharkHeaderProtocol> protocol, proto_tree* parent, int16_t* pFieldId)
