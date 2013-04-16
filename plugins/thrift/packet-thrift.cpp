@@ -143,6 +143,7 @@ enum TMessageType {
 /* Initialize the protocol and registered fields */
 int proto_thrift = -1;
 
+int hf_thrift_unknown = -1;
 int hf_thrift_bool = -1;
 int hf_thrift_byte = -1;
 int hf_thrift_int16 = -1;
@@ -704,6 +705,19 @@ static void dissect_thrift_void(tvbuff_t* tvb, packet_info* pinfo, proto_tree* r
 void proto_register_thrift(void) {
 
   static hf_register_info hf[] = {
+    {
+      &hf_thrift_unknown,
+      {
+        "<Unknown>",
+        "thrift.unknown",
+        FT_NONE,
+        BASE_NONE,
+        NULL,
+        0,
+        "Unknown Thrift Datatype",
+        HFILL
+      }
+    },
     {
       &hf_thrift_bool,
       {

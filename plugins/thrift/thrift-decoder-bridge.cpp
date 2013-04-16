@@ -64,6 +64,7 @@ bool dissect_thrift_field_content(shared_ptr<WiresharkHeaderProtocol> protocol,
 				  int16_t* pFieldId = NULL);
 proto_item* dissect_thrift_struct(shared_ptr<WiresharkHeaderProtocol> protocol, proto_tree* parent, TMessageType messageType = (TMessageType)0, int16_t* pFieldId = NULL);
 proto_item* dissect_thrift_list(shared_ptr<WiresharkHeaderProtocol> protocol, proto_tree* parent, int16_t* pFieldId = NULL);
+proto_item* dissect_thrift_set(shared_ptr<WiresharkHeaderProtocol> protocol, proto_tree* parent, int16_t* pFieldId = NULL);
 proto_item* dissect_thrift_map(shared_ptr<WiresharkHeaderProtocol> protocol, proto_tree* parent, int16_t* pFieldId = NULL);
 
 const char* field_id_to_text(int16_t* pFieldId) {
@@ -172,6 +173,17 @@ bool dissect_thrift_field_content(shared_ptr<WiresharkHeaderProtocol> protocol,
     {
     bool boolValue;
     protocol->readBool(boolValue);
+    proto_item* ti = proto_tree_add_item(parent,
+					 hf_thrift_bool,
+					 protocol->getWiresharkBuffer(),
+					 startOffset,
+					 protocol->getReadOffset() - startOffset,
+					 FALSE);
+    proto_item_set_text(ti,
+			"%s%s: %s",
+			field_id_to_text(pFieldId),
+			fieldTypeName[fieldType],
+			boolValue ? "true" : "false");
     break;
     }
 
@@ -179,6 +191,17 @@ bool dissect_thrift_field_content(shared_ptr<WiresharkHeaderProtocol> protocol,
     {
     int8_t byteValue;
     protocol->readByte(byteValue);
+    proto_item* ti = proto_tree_add_item(parent,
+					 hf_thrift_byte,
+					 protocol->getWiresharkBuffer(),
+					 startOffset,
+					 protocol->getReadOffset() - startOffset,
+					 FALSE);
+    proto_item_set_text(ti,
+			"%s%s: %d",
+			field_id_to_text(pFieldId),
+			fieldTypeName[fieldType],
+			byteValue);
     break;
     }
 
@@ -186,6 +209,17 @@ bool dissect_thrift_field_content(shared_ptr<WiresharkHeaderProtocol> protocol,
     {
     int16_t shortValue;
     protocol->readI16(shortValue);
+    proto_item* ti = proto_tree_add_item(parent,
+					 hf_thrift_int16,
+					 protocol->getWiresharkBuffer(),
+					 startOffset,
+					 protocol->getReadOffset() - startOffset,
+					 FALSE);
+    proto_item_set_text(ti,
+			"%s%s: %d",
+			field_id_to_text(pFieldId),
+			fieldTypeName[fieldType],
+			shortValue);
     break;
     }
 
@@ -211,6 +245,17 @@ bool dissect_thrift_field_content(shared_ptr<WiresharkHeaderProtocol> protocol,
     {
     double doubleValue;
     protocol->readDouble(doubleValue);
+    proto_item* ti = proto_tree_add_item(parent,
+					 hf_thrift_double,
+					 protocol->getWiresharkBuffer(),
+					 startOffset,
+					 protocol->getReadOffset() - startOffset,
+					 FALSE);
+    proto_item_set_text(ti,
+			"%s%s: %lf",
+			field_id_to_text(pFieldId),
+			fieldTypeName[fieldType],
+			doubleValue);
     break;
     }
 
@@ -244,18 +289,45 @@ bool dissect_thrift_field_content(shared_ptr<WiresharkHeaderProtocol> protocol,
     dissect_thrift_list(protocol, parent, pFieldId);
     break;
 
-  case apache::thrift::protocol::T_U64:
-  case apache::thrift::protocol::T_I64:
   case apache::thrift::protocol::T_SET:
-  case apache::thrift::protocol::T_UTF8:
-  case apache::thrift::protocol::T_UTF16:
+    dissect_thrift_set(protocol, parent, pFieldId);
+    break;
+
+  case apache::thrift::protocol::T_I64:
     {
-    protocol->skip(fieldType);
+    int64_t longLongValue;
+    protocol->readI64(longLongValue);
+    proto_item* ti = proto_tree_add_item(parent,
+					 hf_thrift_double,
+					 protocol->getWiresharkBuffer(),
+					 startOffset,
+					 protocol->getReadOffset() - startOffset,
+					 FALSE);
+    proto_item_set_text(ti,
+			"%s%s: %lld",
+			field_id_to_text(pFieldId),
+			fieldTypeName[fieldType],
+			longLongValue);
     break;
     }
 
+  case apache::thrift::protocol::T_UTF8:
+  case apache::thrift::protocol::T_UTF16:
+  case apache::thrift::protocol::T_U64:
   case apache::thrift::protocol::T_VOID:
+    {
+    protocol->skip(fieldType);
+    proto_item* ti = proto_tree_add_item(parent,
+					 hf_thrift_unknown,
+					 protocol->getWiresharkBuffer(),
+					 startOffset,
+					 protocol->getReadOffset() - startOffset,
+					 FALSE);
+    proto_item_set_text(ti,
+			"%s: <unhandled field type>",
+			field_id_to_text(pFieldId));
     break;
+    }
 
   case apache::thrift::protocol::T_STOP:
     // end of struct
@@ -312,6 +384,42 @@ proto_item* dissect_thrift_list(shared_ptr<WiresharkHeaderProtocol> protocol, pr
   protocol->readListEnd();
 
   proto_item_set_len(ti, protocol->getReadOffset() - listStartOffset);
+}
+
+proto_item* dissect_thrift_set(shared_ptr<WiresharkHeaderProtocol> protocol, proto_tree* parent, int16_t *pFieldId)
+{
+  if (parent == NULL) {
+    protocol->skip(apache::thrift::protocol::T_SET);
+    return NULL;
+  }
+
+  int setStartOffset;
+  int startOffset;
+
+  setStartOffset = protocol->getReadOffset();
+  proto_item* ti = proto_tree_add_item(parent,
+  				       hf_thrift_set,
+  				       protocol->getWiresharkBuffer(),
+  				       setStartOffset,
+  				       -1,
+  				       FALSE);
+  proto_tree* subtree = proto_item_add_subtree(ti,
+  					       ett_thrift_set);
+
+  TType elemType;
+  uint32_t size;
+  protocol->readSetBegin(elemType, size);
+
+  for (int i = 0; i < size; i++) {
+    startOffset = protocol->getReadOffset();
+    if (!dissect_thrift_field_content(protocol, subtree, "", elemType, startOffset)) {
+      return NULL;
+    }
+  }
+
+  protocol->readSetEnd();
+
+  proto_item_set_len(ti, protocol->getReadOffset() - setStartOffset);
 }
 
 proto_item* dissect_thrift_map(shared_ptr<WiresharkHeaderProtocol> protocol, proto_tree* parent, int16_t* pFieldId)

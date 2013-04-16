@@ -1,5 +1,6 @@
 extern int proto_thrift;
 
+extern int hf_thrift_unknown;
 extern int hf_thrift_bool;
 extern int hf_thrift_byte;
 extern int hf_thrift_int16;
