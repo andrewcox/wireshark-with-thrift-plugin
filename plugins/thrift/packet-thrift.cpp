@@ -736,8 +736,8 @@ void proto_register_thrift(void) {
       {
         "Byte",
         "thrift.byte",
-        FT_UINT8,
-        BASE_HEX,
+        FT_NONE,
+        BASE_NONE,
         NULL,
         0,
         "Thrift byte datatype",
@@ -749,8 +749,8 @@ void proto_register_thrift(void) {
       {
         "Int16",
         "thrift.int16",
-        FT_UINT16,
-        BASE_DEC,
+        FT_NONE,
+        BASE_NONE,
         NULL,
         0,
         "Thrift int16 datatype",
@@ -775,8 +775,8 @@ void proto_register_thrift(void) {
       {
         "Int64",
         "thrift.int64",
-        FT_UINT64,
-        BASE_DEC,
+        FT_NONE,
+        BASE_NONE,
         NULL,
         0,
         "Thrift int64 datatype",
@@ -788,7 +788,7 @@ void proto_register_thrift(void) {
       {
         "Double",
         "thrift.double",
-        FT_DOUBLE,
+        FT_NONE,
         BASE_NONE,
         NULL,
         0,
